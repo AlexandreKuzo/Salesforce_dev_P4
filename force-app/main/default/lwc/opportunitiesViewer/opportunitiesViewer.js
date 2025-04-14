@@ -22,4 +22,8 @@ export default class OpportunitiesViewer extends LightningElement {
             console.error('Erreur lors de la récupération des lignes de prooduit :', error);
         }
     }
+
+    get hasLineItems() {
+        return this.lineItems && this.lineItems.length > 0;
+    }
 }
