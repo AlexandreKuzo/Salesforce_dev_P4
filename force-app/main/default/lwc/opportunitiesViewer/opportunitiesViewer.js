@@ -10,7 +10,7 @@ export default class OpportunitiesViewer extends LightningElement {
         { label: 'Quantité', fieldName: 'quantity', type: 'number' },
         { label: 'Prix unitaire', fieldName: 'unitPrice', type: 'currency' },
         { label: 'Prix total', fieldName: 'totalPrice', type: 'currency' },
-        { label: 'Quantité en stock', fieldName: 'quantityInStock', type: 'number' }
+        { label: 'Quantité en stock', fieldName: 'productQuantityInStock', type: 'number' }
     ];
 
 
