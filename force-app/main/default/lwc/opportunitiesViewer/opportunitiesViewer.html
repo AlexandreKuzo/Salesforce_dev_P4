@@ -4,7 +4,8 @@
             <lightning-datatable
                 key-field="id"
                 data={lineItems}
-                columns={columns}>
+                columns={columns}
+                onrowaction={handleRowAction}>
             </lightning-datatable>
         </template>
         <template if:false={hasLineItems}>

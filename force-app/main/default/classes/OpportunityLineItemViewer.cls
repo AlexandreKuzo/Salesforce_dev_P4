@@ -9,7 +9,7 @@ public with sharing class OpportunityLineItemViewer {
 
             Opportunity opp = [
                 SELECT Id, Name,
-                    (SELECT Id, Product2.Name, Product2.QuantityInStock__c, Quantity, UnitPrice, TotalPrice 
+                    (SELECT Id, Product2Id, Product2.Name, Product2.QuantityInStock__c, Quantity, UnitPrice, TotalPrice 
                      FROM OpportunityLineItems)
                 FROM Opportunity
                 WHERE Id = :opportunityId
@@ -28,7 +28,29 @@ public with sharing class OpportunityLineItemViewer {
         }
     }
 
+    @AuraEnabled
+    public static void deleteLineItem(String lineItemId) {
+        try {
+            if (!Schema.sObjectType.OpportunityLineItem.isDeletable()) {
+                throw new AuraHandledException('Vous n\'avez pas les permissions nécessaires pour supprimer les lignes de produit.');
+            }
+
+            OpportunityLineItem oli = [
+                SELECT Id 
+                FROM OpportunityLineItem 
+                WHERE Id = :lineItemId
+                WITH SECURITY_ENFORCED // règles de sécurité
+            ];
+
+            delete oli;
+        } catch (Exception e) {
+            throw new AuraHandledException('Erreur lors de la suppression de la ligne de produit : ' + e.getMessage());
+        }
+    }
+
     public class OpportunityLineItemWrapper {
+        @AuraEnabled public String id { get; set; }
+        @AuraEnabled public String productId { get; set; }
         @AuraEnabled public String productName { get; set; }
         @AuraEnabled public Decimal productQuantityInStock { get; set; }
         @AuraEnabled public Decimal quantity { get; set; }
@@ -36,11 +58,13 @@ public with sharing class OpportunityLineItemViewer {
         @AuraEnabled public Decimal totalPrice { get; set; }
 
         public OpportunityLineItemWrapper(OpportunityLineItem oli) {
-            productName = oli.Product2 != null ? oli.Product2.Name : '';
-            productQuantityInStock = oli.Product2 != null ? oli.Product2.QuantityInStock__c : 0;
-            quantity = oli.Quantity;
-            unitPrice = oli.UnitPrice;
-            totalPrice = oli.TotalPrice;
+            this.id = oli.Id;
+            this.productId = oli.Product2Id;
+            this.productName = oli.Product2 != null ? oli.Product2.Name : '';
+            this.productQuantityInStock = oli.Product2 != null ? oli.Product2.QuantityInStock__c : 0;
+            this.quantity = oli.Quantity;
+            this.unitPrice = oli.UnitPrice;
+            this.totalPrice = oli.TotalPrice;
         }
     }
 }
