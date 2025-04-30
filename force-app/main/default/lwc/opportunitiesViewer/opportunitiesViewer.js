@@ -28,6 +28,17 @@ export default class OpportunitiesViewer extends NavigationMixin(LightningElemen
                 variant: 'brand',
                 class: 'slds-m-left_xx-small'
             }
+        },
+        {
+            label: 'Voir produit',
+            type: 'button',
+            typeAttributes: {
+                label: 'View Product',
+                iconName: 'utility:preview',
+                name: 'view',
+                title: 'Cliquer pour voir',
+                variant: 'brand'
+            }
         }
     ];
 
@@ -45,22 +56,19 @@ export default class OpportunitiesViewer extends NavigationMixin(LightningElemen
             this.isAdmin = ['System Administrator'].includes(profile);
             console.log('Profil utilisateur:', profile);
             console.log('isAdmin:', this.isAdmin);
-            if (this.isAdmin) {
-                this.columns.push({
-                    label: 'Voir produit',
-                    type: 'button',
-                    typeAttributes: {
-                        label: 'View Product',
-                        iconName: 'utility:preview',
-                        name: 'view',
-                        title: 'Cliquer pour voir',
-                        variant: 'brand'
-                    }
-                });
-            }
+            
+            // Mettre à jour les colonnes en fonction du profil
+            this.updateColumns();
         } else if (error) {
             console.error('Erreur lors de la récupération du profil :', error);
             this.showToast('Erreur', 'Impossible de récupérer le profil utilisateur', 'error');
+        }
+    }
+
+    updateColumns() {
+        // Si l'utilisateur n'est pas admin, masquer la colonne "Voir produit"
+        if (!this.isAdmin) {
+            this.columns = this.columns.filter(col => col.label !== 'Voir produit');
         }
     }
 
