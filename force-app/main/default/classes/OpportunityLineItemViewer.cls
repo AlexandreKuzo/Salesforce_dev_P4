@@ -1,21 +1,31 @@
-
-public class OpportunityLineItemViewer {
+public with sharing class OpportunityLineItemViewer {
     @AuraEnabled(cacheable=true)
     public static List<OpportunityLineItemWrapper> getLineItems(String opportunityId) {
-        Opportunity opp = [
-            SELECT Id, Name,
-                (SELECT Id, Product2.Name, Product2.QuantityInStock__c, Quantity, UnitPrice, TotalPrice FROM OpportunityLineItems)
-            FROM Opportunity
-            WHERE Id = :opportunityId
-        ];
+        try {
+            
+            if (!Schema.sObjectType.Opportunity.isAccessible()) { //  L'utilisateur a accès à l'opportunité ?
+                throw new AuraHandledException('Vous n\'avez pas les permissions nécessaires pour accéder aux opportunités.');
+            }
 
-        List<OpportunityLineItemWrapper> lineItems = new List<OpportunityLineItemWrapper>();
+            Opportunity opp = [
+                SELECT Id, Name,
+                    (SELECT Id, Product2.Name, Product2.QuantityInStock__c, Quantity, UnitPrice, TotalPrice 
+                     FROM OpportunityLineItems)
+                FROM Opportunity
+                WHERE Id = :opportunityId
+                WITH SECURITY_ENFORCED // règles de sécurité
+            ];
 
-        for (OpportunityLineItem olitem : opp.OpportunityLineItems) {
-            lineItems.add(new OpportunityLineItemWrapper(olitem));
+            List<OpportunityLineItemWrapper> lineItems = new List<OpportunityLineItemWrapper>();
+
+            for (OpportunityLineItem olitem : opp.OpportunityLineItems) {
+                lineItems.add(new OpportunityLineItemWrapper(olitem));
+            }
+
+            return lineItems;
+        } catch (Exception e) {
+            throw new AuraHandledException('Erreur lors de la récupération des lignes de produit : ' + e.getMessage());
         }
-
-        return lineItems;
     }
 
     public class OpportunityLineItemWrapper {
