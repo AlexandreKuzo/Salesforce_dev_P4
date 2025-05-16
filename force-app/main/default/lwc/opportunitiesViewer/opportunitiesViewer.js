@@ -8,7 +8,7 @@ import PROFILE_NAME from '@salesforce/schema/User.Profile.Name';
 import { ShowToastEvent } from 'lightning/platformShowToastEvent';
 import { refreshApex } from '@salesforce/apex';
 import Delete from '@salesforce/label/c.Delete';
-import No_OpportunityLineItem from '@salesforce/label/c.No_OpportunityLineIem';
+import No_OpportunityLineItem from '@salesforce/label/c.No_OpportunityLineItem';
 import Opportunity_products from '@salesforce/label/c.Opportunity_products';
 import Product_Name from '@salesforce/label/c.Product_Name';
 import Quantity from '@salesforce/label/c.Quantity';
