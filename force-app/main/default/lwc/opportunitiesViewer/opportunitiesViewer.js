@@ -7,22 +7,34 @@ import USER_ID from '@salesforce/user/Id';
 import PROFILE_NAME from '@salesforce/schema/User.Profile.Name';
 import { ShowToastEvent } from 'lightning/platformShowToastEvent';
 import { refreshApex } from '@salesforce/apex';
+import Delete from '@salesforce/label/c.Delete';
+import No_OpportunityLineItem from '@salesforce/label/c.No_OpportunityLineIem';
+import Opportunity_products from '@salesforce/label/c.Opportunity_products';
+import Product_Name from '@salesforce/label/c.Product_Name';
+import Quantity from '@salesforce/label/c.Quantity';
+import Quantity_in_Stock from '@salesforce/label/c.Quantity_in_Stock';
+import Quantity_Problem from '@salesforce/label/c.Quantity_Problem';
+import See_Product from '@salesforce/label/c.See_Product';
+import Total_Price from '@salesforce/label/c.Total_Price';
+import Unit_Price from '@salesforce/label/c.Unit_Price';
+import Update_Error from '@salesforce/label/c.Update_Error';
+
 
 export default class OpportunitiesViewer extends NavigationMixin(LightningElement) {
     @api recordId;
     @track lineItems = [];
     @track isAdmin = false;
     @track columns = [
-        { label: 'Nom du produit', fieldName: 'productName' },
-        { label: 'Quantité', fieldName: 'quantity', type: 'number' },
-        { label: 'Prix unitaire', fieldName: 'unitPrice', type: 'currency' },
-        { label: 'Prix total', fieldName: 'totalPrice', type: 'currency' },
+        { label: Product_Name, fieldName: 'productName' },
+        { label: Quantity, fieldName: 'quantity', type: 'number' },
+        { label: Unit_Price, fieldName: 'unitPrice', type: 'currency' },
+        { label: Total_Price, fieldName: 'totalPrice', type: 'currency' },
         {
-            label: 'Supprimer',
+            label: Delete,
             type: 'button-icon',
             typeAttributes: {
                 iconName: 'utility:delete',
-                label: 'Supprimer',
+                label: Delete,
                 name: 'delete',
                 title: 'Supprimer le produit',
                 variant: 'brand',
@@ -30,10 +42,10 @@ export default class OpportunitiesViewer extends NavigationMixin(LightningElemen
             }
         },
         {
-            label: 'Voir produit',
+            label: See_Product,
             type: 'button',
             typeAttributes: {
-                label: 'View Product',
+                label: See_Product,
                 iconName: 'utility:preview',
                 name: 'view',
                 title: 'Cliquer pour voir',
@@ -41,6 +53,14 @@ export default class OpportunitiesViewer extends NavigationMixin(LightningElemen
             }
         }
     ];
+
+    custom_labels = {
+        No_OpportunityLineItem: No_OpportunityLineItem,
+        Opportunity_products: Opportunity_products,
+        Update_Error: Update_Error,
+        Quantity_in_Stock: Quantity_in_Stock,
+        Quantity_Problem: Quantity_Problem
+    }
 
     connectedCallback() {
         console.log('recordId:', this.recordId);
