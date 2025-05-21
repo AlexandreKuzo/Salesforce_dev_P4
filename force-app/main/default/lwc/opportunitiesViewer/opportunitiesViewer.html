@@ -1,5 +1,10 @@
 <template>
     <lightning-card title="Opportunité produits"  icon-name="standard:opportunity">
+        <template if:true={hasStockQuantityError}>
+            <div class="slds-text-color_error slds-text-title_bold slds-theme_alert-texture slds-theme_shade" role="alert">
+                <p>{custom_labels.Quantity_Problem}</p>
+            </div>
+        </template>
         <template if:true={hasLineItems}>
             <lightning-datatable
                 key-field="id"
@@ -9,7 +14,7 @@
             </lightning-datatable>
         </template>
         <template if:false={hasLineItems}>
-            <p>custom_labels.No_OpportunityLineItem</p><br>
+            <p>{custom_labels.No_OpportunityLineItem}</p><br>
             
         </template>
     </lightning-card>  

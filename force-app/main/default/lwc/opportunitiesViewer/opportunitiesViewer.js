@@ -5,6 +5,7 @@ import deleteLineItem from '@salesforce/apex/OpportunityLineItemViewer.deleteLin
 import { getRecord } from 'lightning/uiRecordApi';
 import USER_ID from '@salesforce/user/Id';
 import PROFILE_NAME from '@salesforce/schema/User.Profile.Name';
+import STOCK_QUANTITY_ERROR from '@salesforce/schema/Opportunity.StockQuantityError__c';
 import { ShowToastEvent } from 'lightning/platformShowToastEvent';
 import { refreshApex } from '@salesforce/apex';
 import Delete from '@salesforce/label/c.Delete';
@@ -53,6 +54,7 @@ export default class OpportunitiesViewer extends NavigationMixin(LightningElemen
             }
         }
     ];
+    @track stockQuantityError = false;
 
     custom_labels = {
         No_OpportunityLineItem: No_OpportunityLineItem,
@@ -111,6 +113,19 @@ export default class OpportunitiesViewer extends NavigationMixin(LightningElemen
         console.log('Calcul de hasLineItems:', result);
         console.log('lineItems:', this.lineItems);
         return result;
+    }
+
+    @wire(getRecord, { recordId: '$recordId', fields: [STOCK_QUANTITY_ERROR] })
+    wiredOpportunity({ error, data }) {
+        if (data) {
+            this.opportunityRecord = data;
+        } else if (error) {
+            console.error('Erreur lors de la récupération du champ StockQuantityError__c:', error);
+        }
+    }
+
+    get hasStockQuantityError() {
+        return this.opportunityRecord?.fields?.StockQuantityError__c?.value || false;
     }
 
     handleRowAction(event) {
