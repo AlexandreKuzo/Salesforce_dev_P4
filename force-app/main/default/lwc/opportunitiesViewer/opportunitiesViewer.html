@@ -1,8 +1,12 @@
 <template>
     <lightning-card title="Opportunité produits"  icon-name="standard:opportunity">
         <template if:true={hasStockQuantityError}>
-            <div class="slds-text-color_error slds-text-title_bold slds-theme_alert-texture slds-theme_shade" role="alert">
-                <p>{custom_labels.Quantity_Problem}</p>
+            <div class="slds-notify slds-notify_alert slds-theme_alert-texture slds-theme_error" role="alert">
+                <span class="slds-assistive-text">error</span>
+                <h2>
+                    <lightning-icon icon-name="utility:error" alternative-text="Error" variant="inverse" size="small" class="slds-m-right_small"></lightning-icon>
+                    {custom_labels.Quantity_Problem}
+                </h2>
             </div>
         </template>
         <template if:true={hasLineItems}>

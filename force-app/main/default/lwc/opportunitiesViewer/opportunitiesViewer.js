@@ -6,6 +6,7 @@ import { getRecord } from 'lightning/uiRecordApi';
 import USER_ID from '@salesforce/user/Id';
 import PROFILE_NAME from '@salesforce/schema/User.Profile.Name';
 import STOCK_QUANTITY_ERROR from '@salesforce/schema/Opportunity.StockQuantityError__c';
+import { RefreshEvent } from 'lightning/refresh';
 import { ShowToastEvent } from 'lightning/platformShowToastEvent';
 import { refreshApex } from '@salesforce/apex';
 import Delete from '@salesforce/label/c.Delete';
@@ -101,6 +102,7 @@ export default class OpportunitiesViewer extends NavigationMixin(LightningElemen
             this.lineItems = data;
             console.log('lineItems après assignation:', this.lineItems);
             console.log('hasLineItems:', this.hasLineItems);
+            this.dispatchEvent(new RefreshEvent());
         } else if (error) {
             console.error('Erreur lors de la récupération des lignes de produit :', error);
             this.showToast('Erreur', error.body.message || 'Impossible de récupérer les lignes de produit', 'error');
@@ -126,6 +128,7 @@ export default class OpportunitiesViewer extends NavigationMixin(LightningElemen
 
     get hasStockQuantityError() {
         return this.opportunityRecord?.fields?.StockQuantityError__c?.value || false;
+        
     }
 
     handleRowAction(event) {
@@ -145,6 +148,7 @@ export default class OpportunitiesViewer extends NavigationMixin(LightningElemen
             this.showToast('Succès', 'Le produit a été supprimé avec succès', 'success');
             // Rafraîchir les données
             await refreshApex(this.wiredLineItems);
+            this.dispatchEvent(new RefreshEvent());
         } catch (error) {
             console.error('Erreur lors de la suppression:', error);
             this.showToast('Erreur', error.body.message || 'Erreur lors de la suppression du produit', 'error');
