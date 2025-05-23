@@ -5,7 +5,6 @@ import deleteLineItem from '@salesforce/apex/OpportunityLineItemViewer.deleteLin
 import { getRecord } from 'lightning/uiRecordApi';
 import USER_ID from '@salesforce/user/Id';
 import PROFILE_NAME from '@salesforce/schema/User.Profile.Name';
-import STOCK_QUANTITY_ERROR from '@salesforce/schema/Opportunity.StockQuantityError__c';
 import { RefreshEvent } from 'lightning/refresh';
 import { ShowToastEvent } from 'lightning/platformShowToastEvent';
 import { refreshApex } from '@salesforce/apex';
@@ -100,6 +99,8 @@ export default class OpportunitiesViewer extends NavigationMixin(LightningElemen
         if (data) {
             console.log('Données reçues:', data);
             this.lineItems = data;
+            // Vérifier les quantités en stock
+            this.checkStockQuantities();
             console.log('lineItems après assignation:', this.lineItems);
             console.log('hasLineItems:', this.hasLineItems);
             this.dispatchEvent(new RefreshEvent());
@@ -110,6 +111,43 @@ export default class OpportunitiesViewer extends NavigationMixin(LightningElemen
         }
     }
 
+    checkStockQuantities() {
+        if (!this.lineItems || this.lineItems.length === 0) {
+            this.stockQuantityError = false;
+            return;
+        }
+    
+        // Grouper les quantités demandées par produit
+        const productQuantityMap = new Map();
+    
+        for (const item of this.lineItems) {
+            const productId = item.productId;
+            const quantity = item.quantity || 0;
+            const stock = item.productQuantityInStock || 0;
+    
+            if (!productQuantityMap.has(productId)) {
+                productQuantityMap.set(productId, { total: 0, stock });
+            }
+    
+            const productData = productQuantityMap.get(productId);
+            productData.total += quantity;
+            productQuantityMap.set(productId, productData);
+        }
+    
+        // Vérifier si une somme dépasse le stock
+        let hasStockIssue = false;
+        for (const [productId, { total, stock }] of productQuantityMap.entries()) {
+            console.log(`Produit ${productId} | Total demandé: ${total} | Stock: ${stock}`);
+            if (total > stock) {
+                hasStockIssue = true;
+                break;
+            }
+        }
+    
+        this.stockQuantityError = hasStockIssue;
+        console.log('Stock quantity error detected:', hasStockIssue);
+    }
+
     get hasLineItems() {
         const result = this.lineItems && this.lineItems.length > 0;
         console.log('Calcul de hasLineItems:', result);
@@ -117,19 +155,7 @@ export default class OpportunitiesViewer extends NavigationMixin(LightningElemen
         return result;
     }
 
-    @wire(getRecord, { recordId: '$recordId', fields: [STOCK_QUANTITY_ERROR] })
-    wiredOpportunity({ error, data }) {
-        if (data) {
-            this.opportunityRecord = data;
-        } else if (error) {
-            console.error('Erreur lors de la récupération du champ StockQuantityError__c:', error);
-        }
-    }
-
-    get hasStockQuantityError() {
-        return this.opportunityRecord?.fields?.StockQuantityError__c?.value || false;
-        
-    }
+   
 
     handleRowAction(event) {
         const actionName = event.detail.action.name;
