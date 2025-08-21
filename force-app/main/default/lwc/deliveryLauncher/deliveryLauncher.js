@@ -125,7 +125,7 @@ export default class DeliveryLauncher extends NavigationMixin(LightningElement) 
 
     // Getters pour l'interface
     get canLaunchDelivery() {
-        return this.orderStatus === 'Activated' && this.transporters.length > 0;
+        return !(this.orderStatus === 'Activated' && this.transporters.length > 0);
     }
 
     get hasTransporters() {
