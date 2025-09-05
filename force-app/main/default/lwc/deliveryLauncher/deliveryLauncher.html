@@ -34,7 +34,9 @@
                 <template if:false={isLoading}>
                     <template if:true={hasTransporters}>
                         <!-- Transporteur le plus rapide -->
-                        <div class="slds-box slds-theme_shade slds-m-bottom_small">
+                        <div class="slds-box slds-theme_shade slds-m-bottom_small transporter-option" 
+                             data-transporter-id={fastestTransporter.Carrier__c}
+                             onclick={handleTransporterSelect}>
                             <div class="slds-grid slds-gutters">
                                 <div class="slds-col slds-size_1-of-12">
                                     <lightning-icon icon-name="utility:clock" size="small" class="slds-icon-text-default"></lightning-icon>
@@ -54,7 +56,9 @@
                         </div>
 
                         <!-- Transporteur le moins cher -->
-                        <div class="slds-box slds-theme_shade slds-m-bottom_small">
+                        <div class="slds-box slds-theme_shade slds-m-bottom_small transporter-option" 
+                             data-transporter-id={cheapestTransporter.Carrier__c}
+                             onclick={handleTransporterSelect}>
                             <div class="slds-grid slds-gutters">
                                 <div class="slds-col slds-size_1-of-12">
                                     <lightning-icon icon-name="utility:moneybag" size="small" class="slds-icon-text-default"></lightning-icon>
@@ -73,7 +77,25 @@
                             </div>
                         </div>
 
-                        <!-- Bouton de lancement -->
+                        <!-- Transporteur sélectionné -->
+                        <template if:true={selectedTransporterDetails}>
+                            <div class="slds-box slds-theme_info slds-m-bottom_medium">
+                                <div class="slds-text-heading_small slds-m-bottom_small">
+                                    Transporteur sélectionné
+                                </div>
+                                <div class="slds-text-body_regular">
+                                    <strong>Nom :</strong> {selectedTransporterDetails.Carrier__r.Name__c}
+                                </div>
+                                <div class="slds-text-body_regular">
+                                    <strong>Prix :</strong> {selectedTransporterDetails.Price__c} €
+                                </div>
+                                <div class="slds-text-body_regular">
+                                    <strong>Délai de livraison :</strong> {selectedTransporterDetails.DeliveryTimePeriod__c} jours
+                                </div>
+                            </div>
+                        </template>
+
+                        <!-- Boutons d'action -->
                         <div class="slds-m-top_medium">
                             <lightning-button 
                                 label="Lancer la Livraison" 
@@ -81,6 +103,12 @@
                                 onclick={handleLaunchDelivery}
                                 disabled={canLaunchDelivery}
                                 class="slds-m-right_small">
+                            </lightning-button>
+                            
+                            <lightning-button 
+                                label="Voir d'autres transporteurs" 
+                                variant="neutral" 
+                                onclick={handleShowAllTransporters}>
                             </lightning-button>
                         </div>
                     </template>
@@ -103,7 +131,7 @@
                                 <lightning-icon icon-name="utility:close" size="small"></lightning-icon>
                                 <span class="slds-assistive-text">Fermer</span>
                             </button>
-                            <h2 class="slds-text-heading_medium slds-hyphenate">Sélectionner un Transporteur</h2>
+                            <h2 class="slds-text-heading_medium slds-hyphenate">Tous les Transporteurs Disponibles</h2>
                         </header>
                         
                         <div class="slds-modal__content slds-p-around_medium">

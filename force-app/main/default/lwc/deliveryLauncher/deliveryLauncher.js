@@ -66,16 +66,50 @@ export default class DeliveryLauncher extends NavigationMixin(LightningElement) 
             return;
         }
         
-        if (this.transporters.length === 0) {
-            this.showToast('Erreur', 'Aucun transporteur disponible pour ce pays', 'error');
+        if (!this.selectedTransporter) {
+            this.showToast('Erreur', 'Veuillez sélectionner un transporteur', 'error');
             return;
         }
 
-        this.showTransporterModal = true;
+        // Lancer directement la livraison avec le transporteur sélectionné
+        this.handleConfirmDelivery();
     }
 
     handleTransporterChange(event) {
         this.selectedTransporter = event.detail.value;
+    }
+
+    handleTransporterSelect(event) {
+        const transporterId = event.currentTarget.dataset.transporterId;
+        this.selectedTransporter = transporterId;
+        
+        // Mettre à jour les classes CSS pour indiquer la sélection
+        this.updateTransporterSelection();
+    }
+
+    updateTransporterSelection() {
+        // Supprimer la classe selected de tous les transporteurs
+        const transporterOptions = this.template.querySelectorAll('.transporter-option');
+        transporterOptions.forEach(option => {
+            option.classList.remove('selected');
+        });
+
+        // Ajouter la classe selected au transporteur sélectionné
+        if (this.selectedTransporter) {
+            const selectedOption = this.template.querySelector(`[data-transporter-id="${this.selectedTransporter}"]`);
+            if (selectedOption) {
+                selectedOption.classList.add('selected');
+            }
+        }
+    }
+
+    renderedCallback() {
+        // Mettre à jour la sélection visuelle après le rendu
+        this.updateTransporterSelection();
+    }
+
+    handleShowAllTransporters() {
+        this.showTransporterModal = true;
     }
 
     handleCloseModal() {
