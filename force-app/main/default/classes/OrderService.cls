@@ -44,7 +44,7 @@ public with sharing class OrderService {
             // Créer la livraison avec le transporteur et le prix
             Delivery__c delivery = new Delivery__c(
                 Order__c = o.Id,
-                Status__c = 'En cours', // Utiliser la valeur française de votre picklist
+                Status__c = 'En cours', // Utiliser la valeur française de la picklist
                 Country__c = o.ShippingCountry,
                 Carrier__c = fastest != null ? fastest.Id : null,
                 Price__c = deliveryPrice != null ? deliveryPrice.Price__c : null
