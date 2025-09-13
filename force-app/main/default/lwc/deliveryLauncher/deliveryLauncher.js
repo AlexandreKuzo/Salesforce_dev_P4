@@ -11,6 +11,8 @@ import ORDER_STATUS_FIELD from '@salesforce/schema/Order.Status';
 // Méthodes des classes Apex
 import getAvailableTransporters from '@salesforce/apex/TransporterSelector.getAvailableTransporters';
 import createDelivery from '@salesforce/apex/DeliveryService.createDelivery';
+import getDeliveriesForOrder from '@salesforce/apex/DeliveryService.getDeliveriesForOrder';
+import getOrderDeliveryStatus from '@salesforce/apex/DeliveryService.getOrderDeliveryStatus';
 
 export default class DeliveryLauncher extends NavigationMixin(LightningElement) {
     @api recordId; // ID de la commande
@@ -20,6 +22,8 @@ export default class DeliveryLauncher extends NavigationMixin(LightningElement) 
     @track isLoading = false;
     @track showTransporterModal = false;
     @track deliveryInProgress = false;
+    @track existingDeliveries = [];
+    @track orderDeliveryStatus = '';
 
     // Données commande
     orderAccountId;
@@ -36,6 +40,8 @@ export default class DeliveryLauncher extends NavigationMixin(LightningElement) 
             
             if (this.orderShippingCountry) {
                 this.loadTransporters();
+                this.loadExistingDeliveries();
+                this.loadOrderDeliveryStatus();
             }
         } else if (error) {
             this.showToast('Erreur', 'Impossible de charger la commande', 'error');
@@ -49,14 +55,28 @@ export default class DeliveryLauncher extends NavigationMixin(LightningElement) 
         try {
             this.transporters = await getAvailableTransporters({ country: this.orderShippingCountry });
             
-            // Sélectionner automatiquement le transporteur le moins cher
-            if (this.transporters.length > 0) {
-                this.selectedTransporter = this.transporters[0].Carrier__c;
-            }
+            // Ne plus sélectionner automatiquement un transporteur
+            // L'utilisateur doit faire un choix conscient
         } catch (error) {
             this.showToast('Erreur', 'Impossible de charger les transporteurs', 'error');
         } finally {
             this.isLoading = false;
+        }
+    }
+
+    async loadExistingDeliveries() {
+        try {
+            this.existingDeliveries = await getDeliveriesForOrder({ orderId: this.recordId });
+        } catch (error) {
+            console.error('Erreur lors du chargement des livraisons:', error);
+        }
+    }
+
+    async loadOrderDeliveryStatus() {
+        try {
+            this.orderDeliveryStatus = await getOrderDeliveryStatus({ orderId: this.recordId });
+        } catch (error) {
+            console.error('Erreur lors du chargement du statut de livraison:', error);
         }
     }
 
@@ -129,8 +149,12 @@ export default class DeliveryLauncher extends NavigationMixin(LightningElement) 
                 transporterId: this.selectedTransporter
             });
 
-            this.showToast('Succès', 'Livraison créée avec succès', 'success');
+            this.showToast('Succès', 'Livraison confirmée avec succès', 'success');
             this.showTransporterModal = false;
+            
+            // Recharger les données
+            await this.loadExistingDeliveries();
+            await this.loadOrderDeliveryStatus();
             
             // Rafraîchir la page pour afficher la nouvelle livraison
             this[NavigationMixin.Navigate]({
@@ -141,7 +165,7 @@ export default class DeliveryLauncher extends NavigationMixin(LightningElement) 
                 }
             });
         } catch (error) {
-            this.showToast('Erreur', 'Impossible de créer la livraison', 'error');
+            this.showToast('Erreur', error.body?.message || 'Impossible de créer la livraison', 'error');
         } finally {
             this.deliveryInProgress = false;
         }
@@ -159,11 +183,15 @@ export default class DeliveryLauncher extends NavigationMixin(LightningElement) 
 
     // Getters pour l'interface
     get canLaunchDelivery() {
-        return !(this.orderStatus === 'Activated' && this.transporters.length > 0);
+        return !(this.orderStatus === 'Activated' && this.transporters.length > 0 && this.selectedTransporter);
     }
 
     get hasTransporters() {
         return this.transporters.length > 0;
+    }
+
+    get hasExistingDeliveries() {
+        return this.existingDeliveries.length > 0;
     }
 
     get selectedTransporterDetails() {
@@ -199,6 +227,23 @@ export default class DeliveryLauncher extends NavigationMixin(LightningElement) 
             return 'slds-theme_warning';
         } else {
             return 'slds-theme_default';
+        }
+    }
+
+    get deliveryStatusBadgeClass() {
+        switch (this.orderDeliveryStatus) {
+            case 'Livrée':
+                return 'slds-theme_success';
+            case 'En cours de livraison':
+                return 'slds-theme_info';
+            case 'Confirmée':
+                return 'slds-theme_warning';
+            case 'En attente':
+                return 'slds-theme_default';
+            case 'Annulée':
+                return 'slds-theme_error';
+            default:
+                return 'slds-theme_default';
         }
     }
 }

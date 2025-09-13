@@ -25,35 +25,22 @@ public with sharing class OrderService {
         }
     }
 
-    // Quand une commande est finalisée
+    // Quand une commande est activée, créer une livraison en attente
     public static void finalizeOrders(List<Order> orders) {
         List<Delivery__c> deliveries = new List<Delivery__c>();
 
         for (Order o : orders) {
-            Account acc = [SELECT Id, TypeClient__c FROM Account WHERE Id = :o.AccountId LIMIT 1];
-
-            // Récupérer le transporteur le plus rapide via TransporterSelector
-            Carrier__c fastest = TransporterSelector.getFastestTransporter(acc, o.ShippingCountry);
-            
-            // Récupérer le prix de livraison pour ce transporteur et ce pays
-            DeliveryPrice__c deliveryPrice = null;
-            if (fastest != null) {
-                deliveryPrice = TransporterSelector.getDeliveryPrice(fastest.Id, o.ShippingCountry);
-            }
-
-            // Créer la livraison avec le transporteur et le prix
+            // Créer une livraison en attente (sans transporteur assigné)
+            // L'utilisateur devra choisir le transporteur via le composant deliveryLauncher
             Delivery__c delivery = new Delivery__c(
                 Order__c = o.Id,
-                Status__c = 'En cours', // Utiliser la valeur française de la picklist
-                Country__c = o.ShippingCountry,
-                Carrier__c = fastest != null ? fastest.Id : null,
-                Price__c = deliveryPrice != null ? deliveryPrice.Price__c : null
+                Status__c = 'En attente', 
+                Country__c = o.ShippingCountry
+            
             );
             deliveries.add(delivery);
         }
 
         insert deliveries;
     }
-
-
 }

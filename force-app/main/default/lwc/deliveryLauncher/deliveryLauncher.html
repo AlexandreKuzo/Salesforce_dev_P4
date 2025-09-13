@@ -20,8 +20,51 @@
                             </lightning-badge>
                         </div>
                     </template>
+                    <template if:true={orderDeliveryStatus}>
+                        <div class="slds-text-body_regular">
+                            <strong>Statut de livraison :</strong> 
+                            <lightning-badge 
+                                label={orderDeliveryStatus} 
+                                class={deliveryStatusBadgeClass}>
+                            </lightning-badge>
+                        </div>
+                    </template>
                 </div>
             </div>
+
+            <!-- Livraisons existantes -->
+            <template if:true={hasExistingDeliveries}>
+                <div class="slds-m-bottom_medium">
+                    <div class="slds-text-heading_small slds-m-bottom_small">Livraisons Existantes</div>
+                    <template for:each={existingDeliveries} for:item="delivery">
+                        <div key={delivery.Id} class="slds-box slds-theme_shade slds-m-bottom_small">
+                            <div class="slds-grid slds-gutters">
+                                <div class="slds-col slds-size_1-of-12">
+                                    <lightning-icon icon-name="utility:shipping" size="small" class="slds-icon-text-default"></lightning-icon>
+                                </div>
+                                <div class="slds-col slds-size_11-of-12">
+                                    <div class="slds-text-body_regular">
+                                        <strong>Transporteur :</strong> {delivery.Carrier__r.Name__c}
+                                    </div>
+                                    <div class="slds-text-body_regular">
+                                        <strong>Statut :</strong> 
+                                        <lightning-badge 
+                                            label={delivery.Status__c} 
+                                            class={deliveryStatusBadgeClass}>
+                                        </lightning-badge>
+                                    </div>
+                                    <div class="slds-text-body_regular">
+                                        <strong>Prix :</strong> {delivery.Price__c} €
+                                    </div>
+                                    <div class="slds-text-body_small slds-text-color_weak">
+                                        Créée le : {delivery.CreatedDate}
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </template>
+                </div>
+            </template>
 
             <!-- Transporteurs disponibles -->
             <div class="slds-m-bottom_medium">
@@ -98,7 +141,7 @@
                         <!-- Boutons d'action -->
                         <div class="slds-m-top_medium">
                             <lightning-button 
-                                label="Lancer la Livraison" 
+                                label="Confirmer la Livraison" 
                                 variant="brand" 
                                 onclick={handleLaunchDelivery}
                                 disabled={canLaunchDelivery}
