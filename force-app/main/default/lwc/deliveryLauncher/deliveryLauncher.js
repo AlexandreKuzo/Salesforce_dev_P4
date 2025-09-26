@@ -134,6 +134,12 @@ export default class DeliveryLauncher extends NavigationMixin(LightningElement) 
     }
 
     async handleConfirmDelivery() {
+        // Validation du statut de la commande
+        if (this.orderStatus !== 'Activated') {
+            this.showToast('Erreur', 'La commande doit être activée pour lancer une livraison', 'error');
+            return;
+        }
+
         if (!this.selectedTransporter) {
             this.showToast('Erreur', 'Veuillez sélectionner un transporteur', 'error');
             return;
@@ -250,5 +256,15 @@ export default class DeliveryLauncher extends NavigationMixin(LightningElement) 
             default:
                 return 'slds-theme_default';
         }
+    }
+
+    // Getter pour contrôler l'état du bouton de confirmation
+    get canConfirmDelivery() {
+        return this.orderStatus === 'Activated' && !this.deliveryInProgress;
+    }
+
+    // Getter pour contrôler l'état du bouton de confirmation (inverse de canConfirmDelivery)
+    get cannotConfirmDelivery() {
+        return !(this.orderStatus === 'Activated' && !this.deliveryInProgress);
     }
 }
