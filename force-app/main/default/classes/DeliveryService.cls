@@ -10,7 +10,6 @@ public with sharing class DeliveryService {
     /**
      * Crée une livraison pour une commande avec un transporteur spécifique
      * Cette méthode est appelée depuis le composant deliveryLauncher
-    
      */
     @AuraEnabled
     public static Delivery__c createDelivery(Id orderId, Id transporterId) {
@@ -35,15 +34,10 @@ public with sharing class DeliveryService {
         Delivery__c delivery = new Delivery__c(
             Order__c = orderId,
             Status__c = CONFIRMED, // Livraison confirmée avec le transporteur choisi
-            Country__c = order.ShippingCountry
-            // Carrier__c = transporterId,
-            // Price__c = deliveryPrice.Price__c
+            DeliveryPrice__c = deliveryPrice.Id
         );
         
         insert delivery;
-        
-        // Note: On ne modifie plus le statut de l'Order
-        // Le statut reste "Activated" et les détails de livraison sont gérés via Delivery__c
         
         return delivery;
     }
@@ -57,7 +51,6 @@ public with sharing class DeliveryService {
         update delivery;
         
         // Si la livraison est marquée comme livrée, on peut déclencher des actions
-        // mais on ne modifie plus le statut de l'Order
         if (newStatus == DELIVERED) {
             handleDeliveryCompletion(delivery.Order__c);
         }
@@ -65,7 +58,6 @@ public with sharing class DeliveryService {
     
     /**
      * Gère les actions post-livraison (notifications, rapports, etc.)
-     * L'Order reste en statut "Activated"
      */
     private static void handleDeliveryCompletion(Id orderId) {
         List<Delivery__c> allDeliveries = [
@@ -83,26 +75,20 @@ public with sharing class DeliveryService {
         }
         
         // Si toutes les livraisons sont terminées, on peut déclencher des actions
-        // comme des notifications, des rapports, etc.
-        // Mais l'Order reste en statut "Activated"
         if (allDelivered && !allDeliveries.isEmpty()) {
-            // Ici on pourrait ajouter des actions post-livraison :
-            // - Envoyer une notification au client
-            // - Générer un rapport de livraison
-            // - Déclencher un processus de satisfaction client
-            // etc.
+            // Actions post-livraison possibles
         }
     }
     
     /**
      * Récupère les livraisons d'une commande
-     * TO DO : changer la relation avec le transporteur
      */
     @AuraEnabled
     public static List<Delivery__c> getDeliveriesForOrder(Id orderId) {
         return [
-            SELECT Id, Name, Status__c, Country__c, Price__c, 
-                   Carrier__r.Name__c, CreatedDate
+            SELECT Id, Name, Status__c, CreatedDate,
+                   DeliveryPrice__c, DeliveryPrice__r.Carrier__r.Name__c, 
+                   DeliveryPrice__r.Price__c, DeliveryPrice__r.Country__c
             FROM Delivery__c 
             WHERE Order__c = :orderId 
             ORDER BY CreatedDate DESC
@@ -158,20 +144,18 @@ public with sharing class DeliveryService {
     
     /**
      * Confirme une livraison avec un transporteur spécifique
-     * Cette méthode peut être utilisée pour changer de transporteur
      */
     @AuraEnabled
     public static void confirmDelivery(Id deliveryId, Id transporterId) {
-        Delivery__c delivery = [SELECT Id, Status__c, Country__c FROM Delivery__c WHERE Id = :deliveryId LIMIT 1];
+        Delivery__c delivery = [SELECT Id, Status__c, DeliveryPrice__c, DeliveryPrice__r.Country__c FROM Delivery__c WHERE Id = :deliveryId LIMIT 1];
         
         DeliveryPrice__c deliveryPrice = [SELECT Id, Price__c FROM DeliveryPrice__c 
                                          WHERE Carrier__c = :transporterId 
-                                         AND Country__c = :delivery.Country__c 
+                                         AND Country__c = :delivery.DeliveryPrice__r.Country__c 
                                          LIMIT 1];
         
         delivery.Status__c = CONFIRMED;
-        delivery.Carrier__c = transporterId;
-        delivery.Price__c = deliveryPrice.Price__c;
+        delivery.DeliveryPrice__c = deliveryPrice.Id;
         
         update delivery;
     }

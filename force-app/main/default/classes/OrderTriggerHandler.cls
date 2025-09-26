@@ -6,8 +6,9 @@ public with sharing class OrderTriggerHandler {
     public static void handleBeforeEvents(List<Order> newOrders, Map<Id, Order> oldMap) {
         // Validation des commandes
         for (Order order : newOrders) {
-            OrderService.validateOrder(order);
+            
         }
+        OrderService.validateOrder(newOrders); // newOrders
     }
     
     /**

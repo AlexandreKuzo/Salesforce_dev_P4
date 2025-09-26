@@ -54,9 +54,6 @@ export default class DeliveryLauncher extends NavigationMixin(LightningElement) 
         this.isLoading = true;
         try {
             this.transporters = await getAvailableTransporters({ country: this.orderShippingCountry });
-            
-            // Ne plus sélectionner automatiquement un transporteur
-            // L'utilisateur doit faire un choix conscient
         } catch (error) {
             this.showToast('Erreur', 'Impossible de charger les transporteurs', 'error');
         } finally {
@@ -200,22 +197,30 @@ export default class DeliveryLauncher extends NavigationMixin(LightningElement) 
 
     get transporterOptions() {
         return this.transporters.map(transporter => ({
-            label: `${transporter.Carrier__r.Name__c} - ${transporter.Price__c}€ (${transporter.DeliveryTimePeriod__c} jours)`,
+            label: `${transporter.Carrier__r?.Name__c || 'Transporteur inconnu'} - ${transporter.Price__c || 0}€ (${transporter.DeliveryTimePeriod__c || 0} jours)`,
             value: transporter.Carrier__c,
-            description: `${transporter.Price__c}€ - ${transporter.DeliveryTimePeriod__c} jours`
+            description: `${transporter.Price__c || 0}€ - ${transporter.DeliveryTimePeriod__c || 0} jours`
         }));
     }
 
     get fastestTransporter() {
         if (this.transporters.length === 0) return null;
-        return this.transporters.reduce((fastest, current) => 
+        const validTransporters = this.transporters.filter(t => 
+            t && t.Carrier__r && t.Carrier__r.Name__c && t.DeliveryTimePeriod__c
+        );
+        if (validTransporters.length === 0) return null;
+        return validTransporters.reduce((fastest, current) => 
             current.DeliveryTimePeriod__c < fastest.DeliveryTimePeriod__c ? current : fastest
         );
     }
 
     get cheapestTransporter() {
         if (this.transporters.length === 0) return null;
-        return this.transporters.reduce((cheapest, current) => 
+        const validTransporters = this.transporters.filter(t => 
+            t && t.Carrier__r && t.Carrier__r.Name__c && t.Price__c
+        );
+        if (validTransporters.length === 0) return null;
+        return validTransporters.reduce((cheapest, current) => 
             current.Price__c < cheapest.Price__c ? current : cheapest
         );
     }

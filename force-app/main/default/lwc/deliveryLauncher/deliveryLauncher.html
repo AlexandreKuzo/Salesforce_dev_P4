@@ -44,7 +44,7 @@
                                 </div>
                                 <div class="slds-col slds-size_11-of-12">
                                     <div class="slds-text-body_regular">
-                                        <strong>Transporteur :</strong> {delivery.Carrier__r.Name__c}
+                                        <strong>Transporteur :</strong> {delivery.DeliveryPrice__r.Carrier__r.Name__c}
                                     </div>
                                     <div class="slds-text-body_regular">
                                         <strong>Statut :</strong> 
@@ -54,7 +54,7 @@
                                         </lightning-badge>
                                     </div>
                                     <div class="slds-text-body_regular">
-                                        <strong>Prix :</strong> {delivery.Price__c} €
+                                        <strong>Prix :</strong> {delivery.DeliveryPrice__r.Price__c} €
                                     </div>
                                     <div class="slds-text-body_small slds-text-color_weak">
                                         Créée le : {delivery.CreatedDate}
@@ -67,15 +67,15 @@
             </template>
 
             <!-- Transporteurs disponibles -->
-            <div class="slds-m-bottom_medium">
-                <div class="slds-text-heading_small slds-m-bottom_small">Transporteurs Disponibles</div>
-                
-                <template if:true={isLoading}>
-                    <lightning-spinner alternative-text="Chargement des transporteurs..." size="small"></lightning-spinner>
-                </template>
+            <template if:true={hasTransporters}>
+                <div class="slds-m-bottom_medium">
+                    <div class="slds-text-heading_small slds-m-bottom_small">Transporteurs Disponibles</div>
+                    
+                    <template if:true={isLoading}>
+                        <lightning-spinner alternative-text="Chargement des transporteurs..." size="small"></lightning-spinner>
+                    </template>
 
-                <template if:false={isLoading}>
-                    <template if:true={hasTransporters}>
+                    <template if:false={isLoading}>
                         <!-- Transporteur le plus rapide -->
                         <div class="slds-box slds-theme_shade slds-m-bottom_small transporter-option" 
                              data-transporter-id={fastestTransporter.Carrier__c}
@@ -155,14 +155,14 @@
                             </lightning-button>
                         </div>
                     </template>
+                </div>
+            </template>
 
-                    <template if:false={hasTransporters}>
-                        <div class="slds-text-body_regular slds-text-color_weak">
-                            Aucun transporteur disponible pour ce pays.
-                        </div>
-                    </template>
-                </template>
-            </div>
+            <template if:false={hasTransporters}>
+                <div class="slds-text-body_regular slds-text-color_weak">
+                    Aucun transporteur disponible pour ce pays.
+                </div>
+            </template>
 
             <!-- Modal de sélection de transporteur -->
             <template if:true={showTransporterModal}>
